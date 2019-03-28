@@ -73,7 +73,7 @@ public class StashRepository {
   }
 
   public Collection<StashPullRequestResponseValue> getTargetPullRequests() {
-    logger.info(format("Fetch PullRequests (%s).", builder.getProject().getName()));
+    logger.info(format("Fetch PullRequests (%s).", builder.getJob().getName()));
     List<StashPullRequestResponseValue> pullRequests = client.getPullRequests();
     List<StashPullRequestResponseValue> targetPullRequests =
         new ArrayList<StashPullRequestResponseValue>();
@@ -90,10 +90,7 @@ public class StashRepository {
     String destinationCommit = pullRequest.getToRef().getLatestCommit();
     String comment =
         format(
-            BUILD_START_MARKER,
-            builder.getProject().getDisplayName(),
-            sourceCommit,
-            destinationCommit);
+            BUILD_START_MARKER, builder.getJob().getDisplayName(), sourceCommit, destinationCommit);
     StashPullRequestComment commentResponse =
         this.client.postPullRequestComment(pullRequest.getId(), comment);
     return commentResponse.getCommentId().toString();
@@ -216,7 +213,7 @@ public class StashRepository {
     String comment =
         format(
             BUILD_FINISH_SENTENCE,
-            builder.getProject().getDisplayName(),
+            builder.getJob().getDisplayName(),
             sourceCommit,
             destinationCommit,
             message,
@@ -292,7 +289,7 @@ public class StashRepository {
         }
 
         String project_build_finished =
-            format(BUILD_FINISH_REGEX, builder.getProject().getDisplayName());
+            format(BUILD_FINISH_REGEX, builder.getJob().getDisplayName());
         Matcher finishMatcher =
             Pattern.compile(project_build_finished, Pattern.CASE_INSENSITIVE).matcher(content);
 
@@ -354,7 +351,7 @@ public class StashRepository {
           }
 
           // These will match any start or finish message -- need to check commits
-          String escapedBuildName = Pattern.quote(builder.getProject().getDisplayName());
+          String escapedBuildName = Pattern.quote(builder.getJob().getDisplayName());
           String project_build_start = String.format(BUILD_START_REGEX, escapedBuildName);
           String project_build_finished = String.format(BUILD_FINISH_REGEX, escapedBuildName);
           Matcher startMatcher =
