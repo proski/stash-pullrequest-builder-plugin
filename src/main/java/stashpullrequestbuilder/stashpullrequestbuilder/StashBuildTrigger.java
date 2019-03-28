@@ -207,11 +207,6 @@ public class StashBuildTrigger extends Trigger<AbstractProject<?, ?>> {
     super.start(project, newInstance);
   }
 
-  public static StashBuildTrigger getTrigger(AbstractProject project) {
-    Trigger trigger = project.getTrigger(StashBuildTrigger.class);
-    return (StashBuildTrigger) trigger;
-  }
-
   public StashPullRequestsBuilder getBuilder() {
     return this.stashPullRequestsBuilder;
   }
