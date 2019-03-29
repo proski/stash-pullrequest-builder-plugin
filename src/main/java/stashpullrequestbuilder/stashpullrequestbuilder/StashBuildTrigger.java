@@ -10,10 +10,11 @@ import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredenti
 import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Extension;
-import hudson.model.AbstractProject;
 import hudson.model.Build;
 import hudson.model.Cause;
+import hudson.model.CauseAction;
 import hudson.model.Item;
+import hudson.model.Job;
 import hudson.model.ParameterDefinition;
 import hudson.model.ParameterValue;
 import hudson.model.ParametersAction;
@@ -37,6 +38,8 @@ import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import jenkins.model.Jenkins;
+import jenkins.model.ParameterizedJobMixIn;
+import jenkins.model.ParameterizedJobMixIn.ParameterizedJob;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.AncestorInPath;
@@ -47,7 +50,7 @@ import org.kohsuke.stapler.StaplerRequest;
 
 /** Created by Nathan McCarthy */
 @SuppressFBWarnings({"WMI_WRONG_MAP_ITERATOR", "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"})
-public class StashBuildTrigger extends Trigger<AbstractProject<?, ?>> {
+public class StashBuildTrigger extends Trigger<Job<?, ?>> {
   private static final Logger logger =
       Logger.getLogger(MethodHandles.lookup().lookupClass().getName());
   private final String projectPath;
@@ -142,7 +145,7 @@ public class StashBuildTrigger extends Trigger<AbstractProject<?, ?>> {
         CredentialsProvider.lookupCredentials(
             StandardUsernamePasswordCredentials.class,
             this.job,
-            Tasks.getDefaultAuthenticationOf(this.job),
+            Tasks.getDefaultAuthenticationOf((ParameterizedJob) job),
             URIRequirementBuilder.fromUri(stashHost).build()),
         CredentialsMatchers.allOf(CredentialsMatchers.withId(credentialsId)));
   }
@@ -196,15 +199,15 @@ public class StashBuildTrigger extends Trigger<AbstractProject<?, ?>> {
   }
 
   @Override
-  public void start(AbstractProject<?, ?> project, boolean newInstance) {
+  public void start(Job<?, ?> job, boolean newInstance) {
     try {
-      Objects.requireNonNull(project, "project is null");
-      this.stashPullRequestsBuilder = new StashPullRequestsBuilder(project, this);
+      Objects.requireNonNull(job, "job is null");
+      this.stashPullRequestsBuilder = new StashPullRequestsBuilder(job, this);
     } catch (NullPointerException e) {
       logger.log(Level.SEVERE, "Can't start trigger", e);
       return;
     }
-    super.start(project, newInstance);
+    super.start(job, newInstance);
   }
 
   public StashPullRequestsBuilder getBuilder() {
@@ -226,7 +229,19 @@ public class StashBuildTrigger extends Trigger<AbstractProject<?, ?>> {
       abortRunningJobsThatMatch(cause);
     }
 
-    return job.scheduleBuild2(job.getQuietPeriod(), cause, new ParametersAction(values));
+    // TODO: Use ParameterizedJob#getParameterizedJobMixIn() in Jenkins 2.61+
+    ParameterizedJobMixIn<?, ?> scheduledJob =
+        new ParameterizedJobMixIn() {
+          @Override
+          protected Job<?, ?> asJob() {
+            return StashBuildTrigger.this.job;
+          }
+        };
+
+    return scheduledJob.scheduleBuild2(
+        ((ParameterizedJob) job).getQuietPeriod(),
+        new CauseAction(cause),
+        new ParametersAction(values));
   }
 
   private void cancelPreviousJobsInQueueThatMatch(@Nonnull StashCause stashCause) {
@@ -333,7 +348,7 @@ public class StashBuildTrigger extends Trigger<AbstractProject<?, ?>> {
 
     @Override
     public boolean isApplicable(Item item) {
-      return item instanceof AbstractProject;
+      return item instanceof Job && item instanceof ParameterizedJob;
     }
 
     @Override
