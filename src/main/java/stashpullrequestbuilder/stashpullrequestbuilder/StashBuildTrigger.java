@@ -136,7 +136,7 @@ public class StashBuildTrigger extends Trigger<Job<?, ?>> {
   }
 
   // Needed for Jelly Config
-  public String getcredentialsId() {
+  public String getCredentialsId() {
     return this.credentialsId;
   }
 
