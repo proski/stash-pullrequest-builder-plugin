@@ -191,9 +191,8 @@ public class StashRepository {
       for (Cause cause : causes) {
         if (cause instanceof StashCause) {
           StashCause sc = (StashCause) cause;
-          if (StringUtils.equals(sc.getPullRequestId(), pullRequestCause.getPullRequestId())
-              && StringUtils.equals(
-                  sc.getSourceRepositoryName(), pullRequestCause.getSourceRepositoryName())) {
+          // The caller must ensure than both causes correspond to the same job
+          if (StringUtils.equals(sc.getPullRequestId(), pullRequestCause.getPullRequestId())) {
             return true;
           }
         }
