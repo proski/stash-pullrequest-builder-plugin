@@ -4,12 +4,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.aMapWithSize;
 import static org.hamcrest.Matchers.arrayWithSize;
 import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.emptyArray;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doThrow;
@@ -417,6 +417,8 @@ public class StashRepositoryTest {
 
   @Test
   public void pollRepository_logs_time_and_stats() throws Exception {
+    final String timestampPattern = "^[0-9-]+ [0-9:]+\\.[0-9]+ [A-Z]+ ";
+
     when(stashApiClient.getPullRequests()).thenReturn(Collections.emptyList());
 
     stashRepository.pollRepository();
@@ -425,10 +427,11 @@ public class StashRepositoryTest {
 
     String[] logLines = pollLog.toString().split("\\r?\\n|\\r");
     assertThat(logLines.length, is(equalTo(4)));
-    assertThat(logLines[0], containsString(": poll started"));
-    assertThat(logLines[1], is(equalTo("Number of open pull requests: 0")));
-    assertThat(logLines[2], is(equalTo("Number of pull requests to be built: 0")));
-    assertThat(logLines[3], containsString(": poll completed in "));
+    assertThat(logLines[0], matchesPattern(timestampPattern + "Poll started$"));
+    assertThat(logLines[1], matchesPattern(timestampPattern + "Number of open pull requests: 0$"));
+    assertThat(
+        logLines[2], matchesPattern(timestampPattern + "Number of pull requests to be built: 0$"));
+    assertThat(logLines[3], matchesPattern(timestampPattern + "Poll completed in .*$"));
   }
 
   @Test

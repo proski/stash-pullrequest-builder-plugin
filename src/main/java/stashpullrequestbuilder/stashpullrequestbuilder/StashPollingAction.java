@@ -5,6 +5,8 @@ import hudson.model.Action;
 import hudson.model.Job;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import org.apache.commons.jelly.XMLOutput;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
@@ -17,6 +19,9 @@ import org.xml.sax.SAXException;
  * MessageFormatter patterns.
  */
 public class StashPollingAction implements Action {
+
+  private static final DateTimeFormatter TIMESTAMP_FORMATTER =
+      DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS z");
 
   private final Job<?, ?> owner;
   private StringWriter stringWriter;
@@ -48,10 +53,11 @@ public class StashPollingAction implements Action {
   }
 
   public void log(String pattern, Object... arguments) {
+    String timestamp = ZonedDateTime.now().format(TIMESTAMP_FORMATTER);
     FormattingTuple tuple = MessageFormatter.arrayFormat(pattern, arguments);
 
     String logEntry = tuple.getMessage();
-    printWriter.println(logEntry);
+    printWriter.println(timestamp + " " + logEntry);
 
     Throwable throwable = tuple.getThrowable();
     if (throwable != null) {

@@ -16,8 +16,6 @@ import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.StringParameterValue;
 import java.lang.invoke.MethodHandles;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -67,9 +65,6 @@ public class StashRepository {
   private static final String ADDITIONAL_PARAMETER_REGEX = "^p:(([A-Za-z_0-9])+)=(.*)";
   private static final Pattern ADDITIONAL_PARAMETER_REGEX_PATTERN =
       Pattern.compile(ADDITIONAL_PARAMETER_REGEX);
-
-  private static final DateTimeFormatter TIMESTAMP_FORMATTER =
-      DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
 
   private Job<?, ?> job;
   private StashBuildTrigger trigger;
@@ -696,14 +691,12 @@ public class StashRepository {
   public void pollRepository() {
     long pollStartTime = System.currentTimeMillis();
     pollLog.resetLog();
-    pollLog.log("{}: poll started", ZonedDateTime.now().format(TIMESTAMP_FORMATTER));
+    pollLog.log("Poll started");
 
     Collection<StashPullRequestResponseValue> targetPullRequests = getTargetPullRequests();
     addFutureBuildTasks(targetPullRequests);
 
     pollLog.log(
-        "{}: poll completed in {}",
-        ZonedDateTime.now().format(TIMESTAMP_FORMATTER),
-        Util.getTimeSpanString(System.currentTimeMillis() - pollStartTime));
+        "Poll completed in {}", Util.getTimeSpanString(System.currentTimeMillis() - pollStartTime));
   }
 }

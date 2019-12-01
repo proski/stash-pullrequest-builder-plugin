@@ -26,6 +26,8 @@ import org.mockito.quality.Strictness;
 @RunWith(MockitoJUnitRunner.class)
 public class StashPollingActionTest {
 
+  private static final String TIMESTAMP_PATTERN = "^[0-9-]+ [0-9:]+\\.[0-9]+ [A-Z]+ ";
+
   @Rule public MockitoRule rule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
 
   @Mock FreeStyleProject project;
@@ -59,14 +61,17 @@ public class StashPollingActionTest {
   @Test
   public void log_records_string_with_newline() {
     stashPollingAction.log("Some message");
-    assertThat(stashPollingAction.toString(), matchesPattern("^Some message(\\r?\\n|\\r)$"));
+    assertThat(
+        stashPollingAction.toString(),
+        matchesPattern(TIMESTAMP_PATTERN + "Some message(\\r?\\n|\\r)"));
   }
 
   @Test
   public void log_formats_arguments() {
     stashPollingAction.log("{}: found {} items", "Finder", 5);
     assertThat(
-        stashPollingAction.toString(), matchesPattern("^Finder: found 5 items(\\r?\\n|\\r)$"));
+        stashPollingAction.toString(),
+        matchesPattern(TIMESTAMP_PATTERN + "Finder: found 5 items(\\r?\\n|\\r)"));
   }
 
   @Test
@@ -76,8 +81,8 @@ public class StashPollingActionTest {
 
     String[] logLines = stashPollingAction.toString().split("\\r?\\n|\\r");
     assertThat(logLines.length, is(greaterThanOrEqualTo(3)));
-    assertThat(logLines[0], is(equalTo("one, two and three")));
-    assertThat(logLines[1], is(equalTo("java.io.IOException: Read Error")));
+    assertThat(logLines[0], matchesPattern(TIMESTAMP_PATTERN + "one, two and three$"));
+    assertThat(logLines[1], matchesPattern("^java.io.IOException: Read Error$"));
     for (int i = 2; i < logLines.length; i++) {
       assertThat(logLines[i], matchesPattern("^\\tat [A-Za-z0-9_$.]+\\(.*\\)$"));
     }
@@ -89,8 +94,8 @@ public class StashPollingActionTest {
     stashPollingAction.log("Second message");
     String[] logLines = stashPollingAction.toString().split("\\r?\\n|\\r");
     assertThat(logLines.length, is(equalTo(2)));
-    assertThat(logLines[0], is(equalTo("First message")));
-    assertThat(logLines[1], is(equalTo("Second message")));
+    assertThat(logLines[0], matchesPattern(TIMESTAMP_PATTERN + "First message$"));
+    assertThat(logLines[1], matchesPattern(TIMESTAMP_PATTERN + "Second message$"));
   }
 
   @Test
@@ -100,7 +105,7 @@ public class StashPollingActionTest {
     stashPollingAction.log("Second message");
     String[] logLines = stashPollingAction.toString().split("\\r?\\n|\\r");
     assertThat(logLines.length, is(equalTo(1)));
-    assertThat(logLines[0], is(equalTo("Second message")));
+    assertThat(logLines[0], matchesPattern(TIMESTAMP_PATTERN + "Second message$"));
   }
 
   @Test
@@ -112,6 +117,8 @@ public class StashPollingActionTest {
     stashPollingAction.writeLogTo(xmlOut);
     verify(xmlOut, times(1)).write(stringCaptor.capture());
 
-    assertThat(stringCaptor.getValue(), matchesPattern("^\"Fish\" & <i>chips</i>(\\r?\\n|\\r)$"));
+    assertThat(
+        stringCaptor.getValue(),
+        matchesPattern(TIMESTAMP_PATTERN + "\"Fish\" & <i>chips</i>(\\r?\\n|\\r)"));
   }
 }
