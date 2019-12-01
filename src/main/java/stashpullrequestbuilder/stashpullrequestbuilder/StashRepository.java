@@ -165,8 +165,8 @@ public class StashRepository {
     List<StashPullRequestComment> comments =
         client.getPullRequestComments(owner, repositoryName, id);
 
-    // Process newest comments last so they can override older comments
-    comments.sort(Comparator.naturalOrder());
+    // Process newest comments first
+    comments.sort(Comparator.reverseOrder());
 
     Map<String, String> result = new TreeMap<>();
 
@@ -178,7 +178,8 @@ public class StashRepository {
 
       Map<String, String> parameters = getParametersFromContent(content);
       for (Map.Entry<String, String> parameter : parameters.entrySet()) {
-        result.put(parameter.getKey(), parameter.getValue());
+        // Parameters from old comments should not replace those from new comments
+        result.putIfAbsent(parameter.getKey(), parameter.getValue());
       }
     }
 
