@@ -2,6 +2,7 @@ package stashpullrequestbuilder.stashpullrequestbuilder.stash;
 
 import static java.lang.String.format;
 
+import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import hudson.Util;
@@ -62,16 +63,20 @@ public class StashApiClient {
 
   public StashApiClient(
       String stashHost,
-      String username,
-      String password,
+      StandardUsernamePasswordCredentials credentials,
       String project,
       String repositoryName,
       boolean ignoreSsl) {
-    this.credentials = new UsernamePasswordCredentials(username, password);
+    this.credentials = toHttpCredentials(credentials);
     this.project = project;
     this.repositoryName = repositoryName;
     this.apiBaseUrl = stashHost.replaceAll("/$", "") + "/rest/api/1.0/projects/";
     this.ignoreSsl = ignoreSsl;
+  }
+
+  private Credentials toHttpCredentials(StandardUsernamePasswordCredentials credentials) {
+    return new UsernamePasswordCredentials(
+        credentials.getUsername(), credentials.getPassword().getPlainText());
   }
 
   @Nonnull

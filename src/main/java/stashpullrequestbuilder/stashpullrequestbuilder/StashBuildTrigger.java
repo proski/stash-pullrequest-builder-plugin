@@ -280,12 +280,7 @@ public class StashBuildTrigger extends Trigger<Job<?, ?>> {
     try {
       StashApiClient stashApiClient =
           new StashApiClient(
-              getStashHost(),
-              credentials.getUsername(),
-              credentials.getPassword().getPlainText(),
-              getProjectCode(),
-              getRepositoryName(),
-              getIgnoreSsl());
+              getStashHost(), credentials, getProjectCode(), getRepositoryName(), getIgnoreSsl());
 
       this.stashRepository = new StashRepository(job, this, stashApiClient, stashPollingAction);
     } catch (Throwable e) {

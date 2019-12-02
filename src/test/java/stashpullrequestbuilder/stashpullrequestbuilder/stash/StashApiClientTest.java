@@ -30,17 +30,25 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.github.tomakehurst.wiremock.client.BasicCredentials;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import hudson.util.Secret;
 import java.net.SocketException;
 import java.util.List;
 import org.apache.http.client.ClientProtocolException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.jvnet.hudson.test.JenkinsRule;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+import org.mockito.quality.Strictness;
 import stashpullrequestbuilder.stashpullrequestbuilder.stash.StashApiClient.StashApiException;
 
 /*
@@ -54,6 +62,9 @@ import stashpullrequestbuilder.stashpullrequestbuilder.stash.StashApiClient.Stas
 
 /** Created by nathan on 7/06/2015. */
 public class StashApiClientTest {
+
+  @Rule public JenkinsRule jenkinsRule = new JenkinsRule();
+  @Rule public MockitoRule rule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
 
   @Rule
   public WireMockRule wireMockRule =
@@ -69,9 +80,14 @@ public class StashApiClientTest {
 
   @Before
   public void before() throws Exception {
+    StandardUsernamePasswordCredentials credentials =
+        mock(StandardUsernamePasswordCredentials.class);
+
+    when(credentials.getUsername()).thenReturn("Username");
+    when(credentials.getPassword()).thenReturn(Secret.fromString("Password"));
+
     client =
-        new StashApiClient(
-            wireMockRule.baseUrl(), "Username", "Password", projectName, repositoryName, true);
+        new StashApiClient(wireMockRule.baseUrl(), credentials, projectName, repositoryName, true);
   }
 
   private String pullRequestPath(int start) {
