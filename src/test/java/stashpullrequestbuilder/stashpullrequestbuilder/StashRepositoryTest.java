@@ -401,7 +401,7 @@ public class StashRepositoryTest {
 
     stashRepository.addFutureBuildTasks(pullRequestList);
 
-    assertThat(Jenkins.getInstance().getQueue().getItems(), is(arrayWithSize(1)));
+    assertThat(Jenkins.get().getQueue().getItems(), is(arrayWithSize(1)));
   }
 
   @Test
@@ -412,7 +412,7 @@ public class StashRepositoryTest {
 
     stashRepository.addFutureBuildTasks(pullRequestList);
 
-    assertThat(Jenkins.getInstance().getQueue().getItems(), is(emptyArray()));
+    assertThat(Jenkins.get().getQueue().getItems(), is(emptyArray()));
   }
 
   @Test
@@ -423,7 +423,7 @@ public class StashRepositoryTest {
 
     stashRepository.pollRepository();
 
-    assertThat(Jenkins.getInstance().getQueue().getItems(), is(emptyArray()));
+    assertThat(Jenkins.get().getQueue().getItems(), is(emptyArray()));
 
     String[] logLines = pollLog.toString().split("\\r?\\n|\\r");
     assertThat(logLines.length, is(equalTo(4)));
@@ -447,7 +447,7 @@ public class StashRepositoryTest {
 
     stashRepository.pollRepository();
 
-    assertThat(Jenkins.getInstance().getQueue().getItems(), is(arrayWithSize(1)));
+    assertThat(Jenkins.get().getQueue().getItems(), is(arrayWithSize(1)));
   }
 
   @Test
@@ -574,6 +574,6 @@ public class StashRepositoryTest {
 
     stashRepository.addFutureBuildTasks(pullRequestList);
 
-    assertThat(Jenkins.getInstance().getQueue().getItems(), is(emptyArray()));
+    assertThat(Jenkins.get().getQueue().getItems(), is(emptyArray()));
   }
 }

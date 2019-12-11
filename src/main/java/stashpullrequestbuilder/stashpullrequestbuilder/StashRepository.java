@@ -204,10 +204,10 @@ public class StashRepository {
 
   private void cancelPreviousJobsInQueueThatMatch(@Nonnull StashCause stashCause) {
     logger.fine("Looking for queued jobs that match PR ID: " + stashCause.getPullRequestId());
-    Queue queue = Jenkins.getInstance().getQueue();
+    Queue queue = Jenkins.get().getQueue();
 
     // Cast is safe due to StashBuildTrigger#isApplicable() check
-    for (Queue.Item item : queue.getItems((ParameterizedJob) job)) {
+    for (Queue.Item item : queue.getItems((ParameterizedJob<?, ?>) job)) {
       if (hasCauseFromTheSamePullRequest(item.getCauses(), stashCause)) {
         logger.info(format("%s: canceling item in queue: %s", job.getFullName(), item));
         queue.cancel(item);

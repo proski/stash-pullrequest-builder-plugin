@@ -71,7 +71,7 @@ public class StashBuildListener extends RunListener<Run<?, ?>> {
     // problem. The build status would still be visible in that case.
     final String rootUrl =
         Objects.toString(
-            Jenkins.getInstance().getRootUrl(),
+            Jenkins.get().getRootUrl(),
             "=== PLEASE SET JENKINS ROOT URL FROM GLOBAL CONFIGURATION ===");
     final String buildUrl = rootUrl + run.getUrl();
 

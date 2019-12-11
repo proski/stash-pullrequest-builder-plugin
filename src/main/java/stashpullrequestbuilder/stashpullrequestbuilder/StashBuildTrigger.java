@@ -13,7 +13,6 @@ import hudson.model.AbstractProject;
 import hudson.model.Item;
 import hudson.model.Job;
 import hudson.model.Queue;
-import hudson.model.queue.Tasks;
 import hudson.security.ACL;
 import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
@@ -95,7 +94,7 @@ public class StashBuildTrigger extends Trigger<Job<?, ?>> {
 
   @Nullable
   private StandardUsernamePasswordCredentials getCredentials(
-      @Nonnull ParameterizedJob parameterizedJob) {
+      @Nonnull ParameterizedJob<?, ?> parameterizedJob) {
     return CredentialsMatchers.firstOrNull(
         CredentialsProvider.lookupCredentials(
             StandardUsernamePasswordCredentials.class,
@@ -403,7 +402,7 @@ public class StashBuildTrigger extends Trigger<Job<?, ?>> {
           .includeEmptyValue()
           .includeAs(
               context instanceof Queue.Task
-                  ? Tasks.getDefaultAuthenticationOf((Queue.Task) context)
+                  ? ((Queue.Task) context).getDefaultAuthentication()
                   : ACL.SYSTEM,
               context,
               StandardUsernamePasswordCredentials.class,
