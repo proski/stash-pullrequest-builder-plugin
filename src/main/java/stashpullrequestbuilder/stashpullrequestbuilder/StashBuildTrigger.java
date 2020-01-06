@@ -238,8 +238,28 @@ public class StashBuildTrigger extends Trigger<Job<?, ?>> {
       stashPollingAction = new StashPollingAction(job);
     }
 
+    if (StringUtils.isEmpty(cron)) {
+      stashPollingAction.log("Cron schedule is not set");
+      return;
+    }
+
+    if (StringUtils.isEmpty(stashHost)) {
+      stashPollingAction.log("Stash URL is not set");
+      return;
+    }
+
     if (StringUtils.isEmpty(credentialsId)) {
       stashPollingAction.log("Stash credentials are not set");
+      return;
+    }
+
+    if (StringUtils.isEmpty(projectCode)) {
+      stashPollingAction.log("Project name is not set");
+      return;
+    }
+
+    if (StringUtils.isEmpty(repositoryName)) {
+      stashPollingAction.log("Repository name is not set");
       return;
     }
 
@@ -343,12 +363,40 @@ public class StashBuildTrigger extends Trigger<Job<?, ?>> {
       return super.configure(req, json);
     }
 
+    public FormValidation doCheckCron(@QueryParameter String value) {
+      if (StringUtils.isEmpty(value)) {
+        return FormValidation.error("Cron schedule cannot be empty");
+      }
+      return FormValidation.ok();
+    }
+
+    public FormValidation doCheckStashHost(@QueryParameter String value) {
+      if (StringUtils.isEmpty(value)) {
+        return FormValidation.error("Stash URL cannot be empty");
+      }
+      return FormValidation.ok();
+    }
+
     public FormValidation doCheckCredentialsId(@QueryParameter String value) {
       if (StringUtils.isEmpty(value)) {
         return FormValidation.error("Credentials cannot be empty");
       } else {
         return FormValidation.ok();
       }
+    }
+
+    public FormValidation doCheckProjectCode(@QueryParameter String value) {
+      if (StringUtils.isEmpty(value)) {
+        return FormValidation.error("Project cannot be empty");
+      }
+      return FormValidation.ok();
+    }
+
+    public FormValidation doCheckRepositoryName(@QueryParameter String value) {
+      if (StringUtils.isEmpty(value)) {
+        return FormValidation.error("Repository cannot be empty");
+      }
+      return FormValidation.ok();
     }
 
     public ListBoxModel doFillCredentialsIdItems(
