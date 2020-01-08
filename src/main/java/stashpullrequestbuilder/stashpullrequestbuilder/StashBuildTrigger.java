@@ -22,6 +22,8 @@ import hudson.util.ListBoxModel;
 import java.lang.invoke.MethodHandles;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import jenkins.model.ParameterizedJobMixIn.ParameterizedJob;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
@@ -91,15 +93,14 @@ public class StashBuildTrigger extends Trigger<Job<?, ?>> {
     return this.credentialsId;
   }
 
-  private StandardUsernamePasswordCredentials getCredentials() {
-    // Cast is safe due to isApplicable() check
-    ParameterizedJob parameterizedJob = (ParameterizedJob) job;
-
+  @Nullable
+  private StandardUsernamePasswordCredentials getCredentials(
+      @Nonnull ParameterizedJob parameterizedJob) {
     return CredentialsMatchers.firstOrNull(
         CredentialsProvider.lookupCredentials(
             StandardUsernamePasswordCredentials.class,
-            this.job,
-            Tasks.getDefaultAuthenticationOf(parameterizedJob),
+            parameterizedJob,
+            parameterizedJob.getDefaultAuthentication(),
             URIRequirementBuilder.fromUri(stashHost).build()),
         CredentialsMatchers.allOf(CredentialsMatchers.withId(credentialsId)));
   }
@@ -242,7 +243,15 @@ public class StashBuildTrigger extends Trigger<Job<?, ?>> {
       return;
     }
 
-    StandardUsernamePasswordCredentials credentials = getCredentials();
+    // Should not happen due to isApplicable() check
+    if (!(job instanceof ParameterizedJob)) {
+      stashPollingAction.log("{} is not a ParameterizedJob", job);
+      return;
+    }
+
+    ParameterizedJob parameterizedJob = (ParameterizedJob) job;
+
+    StandardUsernamePasswordCredentials credentials = getCredentials(parameterizedJob);
     if (credentials == null) {
       stashPollingAction.log("No such credentials: \"{}\"", credentialsId);
       return;
