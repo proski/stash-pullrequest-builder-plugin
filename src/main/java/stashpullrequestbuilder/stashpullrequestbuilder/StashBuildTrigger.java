@@ -20,6 +20,9 @@ import hudson.triggers.TriggerDescriptor;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import java.lang.invoke.MethodHandles;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jenkins.model.ParameterizedJobMixIn.ParameterizedJob;
@@ -237,6 +240,11 @@ public class StashBuildTrigger extends Trigger<Job<?, ?>> {
       stashPollingAction = new StashPollingAction(job);
     }
 
+    if (StringUtils.isEmpty(stashHost)) {
+      stashPollingAction.log("Stash URL is not set");
+      return;
+    }
+
     if (StringUtils.isEmpty(credentialsId)) {
       stashPollingAction.log("Stash credentials are not set");
       return;
@@ -332,6 +340,20 @@ public class StashBuildTrigger extends Trigger<Job<?, ?>> {
       req.bindJSON(this, json);
       save();
       return super.configure(req, json);
+    }
+
+    public FormValidation doCheckStashHost(@QueryParameter String value) {
+      if (StringUtils.isEmpty(value)) {
+        return FormValidation.error("URL cannot be empty");
+      }
+
+      try {
+        new URL(value).toURI();
+      } catch (MalformedURLException | URISyntaxException e) {
+        return FormValidation.error("Please specify a valid URL");
+      }
+
+      return FormValidation.ok();
     }
 
     public FormValidation doCheckCredentialsId(@QueryParameter String value) {
